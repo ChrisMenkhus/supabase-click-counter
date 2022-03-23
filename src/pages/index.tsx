@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { json } from 'stream/consumers'
 
 type PageProps = {
-  likesGame: LikesGame[]
+  data: LikesGame
 }
 
 type LikesGame = {
@@ -16,41 +16,62 @@ type LikesGame = {
 }
 
 export async function getServerSideProps() {
-  const { data: likesGame } = await supabase
-    .from<LikesGame[]>('LikesGame')
-    .select()
+  const data = await getData()
 
   return {
-    props: { likesGame }, // will be passed to the page component as props
+    props: { data },
   }
 }
 
-const Page: NextPage<PageProps> = ({ likesGame }) => {
-  const [likesGameData, setLikesGameData] = useState<LikesGame>({
-    id: -1,
-    topScore: 0,
-    totalLikes: 0,
-  })
+async function getData() {
+  const { data, error } = await supabase
+    .from<LikesGame>('LikesGame')
+    .select('topScore, totalLikes, id')
+    .eq('id', 1)
+    .single()
+  return data
+}
 
-  useEffect(() => {
-    setLikesGameData(likesGame[0])
-    console.log('likesGameData:', likesGameData)
-    console.log('likesGameProps:', likesGame[0])
-    console.log('likesGame / TopScore: ', likesGame[0].topScore)
-  }, [likesGame, likesGameData])
+const updateTotalLikesOnDatabase = async (value: number) => {
+  const { data, error } = await supabase
+    .from<LikesGame>('LikesGame')
+    .update({ totalLikes: value })
+    .eq('id', 1)
+    .single()
+
+  return data?.totalLikes
+}
+
+const updateTopScoreOnDatabase = async (value: number) => {
+  const { data, error } = await supabase
+    .from<LikesGame>('LikesGame')
+    .update({ topScore: value })
+    .eq('id', 1)
+    .single()
+
+  return data?.topScore
+}
+
+const Page: NextPage<PageProps> = ({ ...props }) => {
+  const [topScore, setTopScore] = useState(props.data.topScore)
+  const [totalLikes, setTotalLikes] = useState(props.data.totalLikes)
 
   return (
     <>
       <Header {...pageSeo} />
       <section>
-        <h1 className="text-5xl leading-relaxed text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-teal-300">
+        <h1 className="mb-16 text-5xl leading-relaxed text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-teal-300">
           Supabase Click Counter
         </h1>
-        <pre>
-          <code>{JSON.stringify(likesGameData)}</code>
-        </pre>
-        <h2>top score: </h2>
-        <LikesGame initialValues={{ topScore: 10, totalLikes: 1000 }} />
+
+        <LikesGame
+          initialValues={{
+            topScore: topScore,
+            totalLikes: totalLikes,
+          }}
+          updateTotalLikesOnDatabase={updateTotalLikesOnDatabase}
+          updateTopScoreOnDatabase={updateTopScoreOnDatabase}
+        />
       </section>
     </>
   )

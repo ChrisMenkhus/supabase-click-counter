@@ -9,9 +9,15 @@ import CountUp from 'react-countup'
 
 type LikesGameProps = {
   initialValues: { topScore: number; totalLikes: number }
+  updateTotalLikesOnDatabase: (value: number) => Promise<number | undefined>
+  updateTopScoreOnDatabase: (value: number) => Promise<number | undefined>
 }
 
-const LikesGame = ({ initialValues }: LikesGameProps) => {
+const LikesGame = ({
+  initialValues,
+  updateTotalLikesOnDatabase,
+  updateTopScoreOnDatabase,
+}: LikesGameProps) => {
   const [gameState, setGameState] = useState<'start' | 'play' | 'win' | 'lose'>(
     'start'
   )
@@ -48,11 +54,13 @@ const LikesGame = ({ initialValues }: LikesGameProps) => {
   }
 
   const handleTotalLikes = () => {
+    updateTotalLikesOnDatabase(totalLikes + currentScore)
     setTotalLikes(totalLikes + currentScore)
   }
 
   const handleTopScore = () => {
     if (currentScore > topScore) {
+      updateTopScoreOnDatabase(currentScore)
       setTopScore(currentScore)
     }
   }
@@ -65,7 +73,6 @@ const LikesGame = ({ initialValues }: LikesGameProps) => {
       setIsTimerActive(true)
     }
   }
-
   const restartGame = () => {
     if (gameState !== 'play') {
       setGameState('play')
@@ -203,17 +210,19 @@ const LikesGame = ({ initialValues }: LikesGameProps) => {
             />
             likes
           </small>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={ReplyIcon}
-            onClick={() => {
-              restartGame()
-            }}
-            disabled={isRetryButtonDisabled}
-          >
-            Retry
-          </Button>
+          <div className="flex flex-row gap-4">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={ReplyIcon}
+              onClick={() => {
+                restartGame()
+              }}
+              disabled={isRetryButtonDisabled}
+            >
+              Retry
+            </Button>
+          </div>
         </GameCard>
       )
       break

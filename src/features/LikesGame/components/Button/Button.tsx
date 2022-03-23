@@ -14,7 +14,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         type={type}
-        className={makeStyles([styles.container, variants[variant], sizes.sm])}
+        className={makeStyles([
+          styles.container,
+          variants[variant],
+          sizes.sm,
+          props.className || '',
+        ])}
         style={props.style}
         {...props}
       >
