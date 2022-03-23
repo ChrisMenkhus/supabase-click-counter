@@ -18,7 +18,11 @@ module.exports = {
   variants: {
     extend: {
       top: ['last'],
+      cursor: ['disabled'],
+      pointerEvents: ['disabled'],
+      backgroundColor: ['disabled', 'hover'],
     },
+    backgroundColor: ({ after }) => after(['disabled']),
   },
   plugins: [],
 }
